@@ -536,6 +536,19 @@ export class SourcesService extends StatefulService<ISourcesState> {
       });
     } else if (type === 'wasapi_output_capture') {
       checkForDefaultDevice();
+    } else if (type === 'v4l2_input') {
+      // v4l2 has no "default" device: select the first camera, as the list shows it as selected
+      const deviceProp = source.getPropertiesFormData().find(p => p.name === 'device_id') as
+        | IObsListInput<string>
+        | undefined;
+      const firstDevice = deviceProp?.options[0];
+      if (
+        deviceProp &&
+        firstDevice &&
+        !deviceProp.options.some(o => o.value === deviceProp.value)
+      ) {
+        source.updateSettings({ ...source.getSettings(), device_id: firstDevice.value });
+      }
     }
 
     this.sourceAdded.next(source.state);
