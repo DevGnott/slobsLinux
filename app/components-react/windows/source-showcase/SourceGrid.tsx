@@ -258,7 +258,18 @@ export default function SourceGrid(p: { activeTab: string; searchTerm: string })
 
   const availableSources = useSearchMemo(availableSourcesBase);
 
-  const essentialSourcesOrder = ['game_capture', 'dshow_input', 'ffmpeg_source'];
+  // Sources that are shown as essentials. Linux has no game capture, so the
+  // webcam and the screen capture take its place.
+  const essentialSourceTypes: string[] = byOS({
+    [OS.Windows]: ['dshow_input', 'ffmpeg_source', 'game_capture'],
+    [OS.Mac]: ['dshow_input', 'ffmpeg_source', 'game_capture'],
+    [OS.Linux]: ['v4l2_input', 'xshm_input_v2', 'ffmpeg_source'],
+  });
+  const essentialSourcesOrder = byOS({
+    [OS.Windows]: ['game_capture', 'dshow_input', 'ffmpeg_source'],
+    [OS.Mac]: ['game_capture', 'dshow_input', 'ffmpeg_source'],
+    [OS.Linux]: ['xshm_input_v2', 'v4l2_input', 'ffmpeg_source'],
+  });
   // Stream Label is last, we don't have a widget type for it
   const essentialWidgetsOrder = [
     WidgetType.AlertBox,
@@ -276,14 +287,7 @@ export default function SourceGrid(p: { activeTab: string; searchTerm: string })
 
   const essentialSources = useMemo(() => {
     const essentialDefaults = availableSources
-      .filter(source =>
-        [
-          'dshow_input',
-          'ffmpeg_source',
-          'game_capture',
-          //byOS({ [OS.Windows]: 'screen_capture', [OS.Mac]: 'window_capture' }),
-        ].includes(source.value),
-      )
+      .filter(source => essentialSourceTypes.includes(source.value))
       .sort(customOrder(essentialSourcesOrder, s => s.value));
 
     const essentialWidgets = iterableWidgetTypes.filter(type =>
