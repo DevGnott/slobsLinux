@@ -1,7 +1,7 @@
 import { PropertiesManager } from './properties-manager';
 import { Inject } from 'services/core/injector';
 import { MediaBackupService } from 'services/media-backup';
-import * as fi from 'node-fontinfo';
+import { fontInfo as fi } from 'util/native-fonts';
 import { FontLibraryService } from 'services/font-library';
 import { EFontStyle } from 'obs-studio-node';
 import fs from 'fs';

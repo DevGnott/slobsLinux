@@ -5,6 +5,8 @@ import {
   SceneCollectionsServerApiService,
 } from 'services/scene-collections/server-api';
 import { RootNode } from './nodes/root';
+import { convertCollectionToLinux, IConversionReport } from './convert-os';
+import * as obs from '../../../obs-api';
 import { SourcesNode, ISourceInfo } from './nodes/sources';
 import { ScenesNode, ISceneSchema } from './nodes/scenes';
 import { SceneItemsNode, ISceneItemInfo } from './nodes/scene-items';
@@ -429,6 +431,35 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.enableAutoSave();
 
     return collection.id;
+  }
+
+  /**
+   * Creates a copy of a scene collection of another operating system for the
+   * current one. Capture sources are replaced by their equivalent, sources
+   * without one are removed. The original collection is not changed.
+   * @param id The id of the collection to import
+   * @returns The id of the new collection and what was changed
+   */
+  async importFromOtherOS(
+    id: string,
+  ): Promise<{ id: string; name: string; report: IConversionReport } | undefined> {
+    if (getOS() !== OS.Linux) return;
+
+    const source = this.getCollection(id);
+    if (!source || source.operatingSystem === getOS()) return;
+
+    const raw = this.stateService.readCollectionFile(id);
+    const { data, report } = convertCollectionToLinux(raw, obs.InputFactory.types());
+
+    const newId = uuid();
+    const name = this.suggestName($t('%{collectionName} (Linux)', { collectionName: source.name }));
+
+    this.stateService.writeDataToCollectionFile(newId, data);
+    this.stateService.ADD_COLLECTION(newId, name, new Date().toISOString(), getOS());
+    await this.safeSync();
+    this.collectionAdded.next(this.getCollection(newId)!);
+
+    return { id: newId, name, report };
   }
 
   /**
@@ -1167,7 +1198,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     if (getOS() === OS.Windows) {
       this.sourcesService.createSource(
         'Desktop Audio',
-        byOS({ [OS.Windows]: 'wasapi_output_capture', [OS.Mac]: 'coreaudio_output_capture' }),
+        byOS({
+          [OS.Windows]: 'wasapi_output_capture',
+          [OS.Mac]: 'coreaudio_output_capture',
+          [OS.Linux]: 'pulse_output_capture',
+        }),
         { device_id: desktopAudioDevice },
         { channel: E_AUDIO_CHANNELS.OUTPUT_1 },
       );
@@ -1178,7 +1213,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       : undefined;
     this.sourcesService.createSource(
       'Mic/Aux',
-      byOS({ [OS.Windows]: 'wasapi_input_capture', [OS.Mac]: 'coreaudio_input_capture' }),
+      byOS({
+        [OS.Windows]: 'wasapi_input_capture',
+        [OS.Mac]: 'coreaudio_input_capture',
+        [OS.Linux]: 'pulse_input_capture',
+      }),
       { device_id: micDevice || defaultId },
       { channel: E_AUDIO_CHANNELS.INPUT_1 },
     );
@@ -1532,6 +1571,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     const type = byOS({
       [OS.Windows]: 'dshow_input',
       [OS.Mac]: 'macos_avcapture',
+      [OS.Linux]: 'v4l2_input',
     }) as TSourceType;
 
     const defaultSource = this.defaultHardwareService.state.defaultVideoDevice;

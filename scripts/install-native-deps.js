@@ -90,11 +90,28 @@ async function runScript() {
       } else {
         throw 'CPU architecture not supported.';
       }
+    } else if (process.platform === 'linux') {
+      // Linux port: Streamlabs does not publish Linux builds of the native
+      // modules. Entries flagged with "linux64" in repositories.json are
+      // downloaded from their "linux_url" (or "url") like on the other
+      // platforms; everything else is skipped and handled at runtime.
+      os = 'linux64';
+      if (process.arch !== 'x64') throw 'CPU architecture not supported.';
     } else {
       throw 'Platform not supported.';
     }
 
     sh.cd(node_modules);
+
+    if (os === 'linux64') {
+      const skipped = dependecies.filter(dependency => !dependency[os]).map(d => d['name']);
+      if (skipped.length) {
+        log_info(
+          `Linux: no prebuilt binaries configured for: ${skipped.join(', ')}. ` +
+            'These modules are optional or must be built locally (see docs/linux.md).',
+        );
+      }
+    }
 
     const promises = dependecies
       .filter(dependency => dependency[os])
@@ -107,11 +124,13 @@ async function runScript() {
 
         if (os === 'osx' && dependency['mac_version']) {
           moduleVersion = dependency['mac_version'];
+        } else if (os === 'linux64' && dependency['linux_version']) {
+          moduleVersion = dependency['linux_version'];
         } else {
           moduleVersion = dependency['version'];
         }
 
-        if (currentVersion == dependency['version']) {
+        if (currentVersion == moduleVersion) {
           return;
         }
 
@@ -122,7 +141,9 @@ async function runScript() {
         fileName = fileName.replace('[OS]', os);
         fileName = fileName.replace('[ARCH]', arch);
 
-        const url = dependency['url'] + fileName;
+        const baseUrl =
+          os === 'linux64' && dependency['linux_url'] ? dependency['linux_url'] : dependency['url'];
+        const url = baseUrl + fileName;
         const filePath = path.join(process.cwd(), fileName);
 
         log_info('Downloading ' + fileName);

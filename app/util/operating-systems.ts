@@ -1,6 +1,7 @@
 export enum OS {
   Windows = 'win32',
   Mac = 'darwin',
+  Linux = 'linux',
 }
 
 type TOSHandlerMap<TReturn> = { [os in OS]: (() => TReturn) | TReturn };
@@ -17,4 +18,12 @@ export function byOS<TReturn>(handlers: TOSHandlerMap<TReturn>): TReturn {
 
 export function getOS() {
   return process.platform as OS;
+}
+
+/**
+ * True for the POSIX desktop platforms (macOS and Linux). Useful where the
+ * behavior only differs between Windows and "everything else".
+ */
+export function isPosix() {
+  return getOS() === OS.Mac || getOS() === OS.Linux;
 }

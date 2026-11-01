@@ -54,15 +54,19 @@ export class ProtocolLinksService extends Service {
     });
 
     // Check if this instance was started with a protocol link
+    const handleArgv = () => {
+      argv.forEach(arg => {
+        if (arg.match(/^slobs:\/\//)) this.handleLink(arg);
+      });
+    };
+
     byOS({
-      [OS.Windows]: () => {
-        argv.forEach(arg => {
-          if (arg.match(/^slobs:\/\//)) this.handleLink(arg);
-        });
-      },
+      [OS.Windows]: handleArgv,
       [OS.Mac]: () => {
         electron.ipcRenderer.send('protocolLinkReady');
       },
+      // Like Windows, Linux passes protocol links as command line arguments
+      [OS.Linux]: handleArgv,
     });
   }
 

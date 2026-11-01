@@ -14,10 +14,13 @@ import { useVuex } from 'components-react/hooks';
 export function getBindingString(binding: IBinding) {
   const keys: string[] = [];
 
-  if (binding.modifiers.alt) keys.push(byOS({ [OS.Windows]: 'Alt', [OS.Mac]: 'Opt' }));
+  const altLabel = byOS({ [OS.Windows]: 'Alt', [OS.Mac]: 'Opt', [OS.Linux]: 'Alt' });
+  const metaLabel = byOS({ [OS.Windows]: 'Win', [OS.Mac]: 'Cmd', [OS.Linux]: 'Super' });
+
+  if (binding.modifiers.alt) keys.push(altLabel);
   if (binding.modifiers.ctrl) keys.push('Ctrl');
   if (binding.modifiers.shift) keys.push('Shift');
-  if (binding.modifiers.meta) keys.push(byOS({ [OS.Windows]: 'Win', [OS.Mac]: 'Cmd' }));
+  if (binding.modifiers.meta) keys.push(metaLabel);
 
   let key = binding.key;
 

@@ -92,9 +92,16 @@ export class SourceShowcaseController {
   }
 
   selectStreamlabel() {
-    this.selectSource(byOS({ [OS.Windows]: 'text_gdiplus', [OS.Mac]: 'text_ft2_source' }), {
-      propertiesManager: 'streamlabels',
-    });
+    this.selectSource(
+      byOS({
+        [OS.Windows]: 'text_gdiplus',
+        [OS.Mac]: 'text_ft2_source',
+        [OS.Linux]: 'text_ft2_source',
+      }),
+      {
+        propertiesManager: 'streamlabels',
+      },
+    );
   }
 
   selectWidget(type: WidgetType) {

@@ -472,6 +472,7 @@ export class SettingsService extends StatefulService<ISettingsServiceState> {
       [OS.Windows]: () => {
         categories.push(ESettingsCategory.GameOverlay);
       },
+      [OS.Linux]: () => {},
     });
 
     if (this.views.advancedSettingEnabled || this.views.platformAppsState.devMode) {
@@ -782,6 +783,7 @@ export class SettingsService extends StatefulService<ISettingsServiceState> {
             byOS({
               [OS.Windows]: isOutput ? 'wasapi_output_capture' : 'wasapi_input_capture',
               [OS.Mac]: isOutput ? 'coreaudio_output_capture' : 'coreaudio_input_capture',
+              [OS.Linux]: isOutput ? 'pulse_output_capture' : 'pulse_input_capture',
             }),
             { device_id: deviceForm.value },
             { channel },

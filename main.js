@@ -99,6 +99,12 @@ app.commandLine.appendSwitch(
   'streamlabs.com,youtube.com,twitch.tv,facebook.com,mixer.com',
 );
 
+if (process.platform === 'linux') {
+  // The OBS preview is embedded as an X11 child window (see obs-studio-node's
+  // display-x11.cpp), so Electron has to run on X11 (XWayland on Wayland).
+  app.commandLine.appendSwitch('ozone-platform', 'x11');
+}
+
 process.env.IPC_UUID = `slobs-${uuid()}`;
 
 /* Determine the current release channel we're
@@ -380,8 +386,52 @@ function openDevTools() {
 const waitingVuexStores = [];
 let workerInitFinished = false;
 
+// Streamlabs does not ship crash-handler for Linux. Fall back to a no-op
+// implementation there so the app can still start without crash reporting.
+function loadCrashHandler() {
+  try {
+    return require('crash-handler');
+  } catch (e) {
+    if (process.platform !== 'linux') throw e;
+    console.log('crash-handler is not available on Linux, crash monitoring is disabled');
+    return {
+      startCrashHandler() {},
+      registerProcess() {},
+      unregisterProcess() {},
+    };
+  }
+}
+
+// obs-studio-node is not published for Linux and has to be built locally.
+// Without it the worker window cannot start, so explain that instead of crashing.
+function checkLinuxNativeDeps() {
+  if (process.platform !== 'linux') return true;
+
+  const osnDir = path.join(
+    app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
+    'node_modules',
+    'obs-studio-node',
+  );
+
+  if (fs.existsSync(path.join(osnDir, 'obs_studio_client.node'))) return true;
+
+  console.log(`obs-studio-node native module not found in ${osnDir}`);
+  dialog.showErrorBox(
+    'Streamlabs Desktop',
+    'The Linux build of obs-studio-node was not found.\n\n' +
+      `Expected it in: ${osnDir}\n\n` +
+      'See docs/linux.md for how to build it.',
+  );
+  return false;
+}
+
 async function startApp() {
-  const crashHandler = require('crash-handler');
+  if (!checkLinuxNativeDeps()) {
+    app.exit(1);
+    return;
+  }
+
+  const crashHandler = loadCrashHandler();
   const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
   const crashHandlerLogPath = app.getPath('userData');
 
@@ -784,8 +834,12 @@ app.on('ready', () => {
     !process.argv.includes('--skip-update') &&
     (process.env.NODE_ENV === 'production' || process.env.SLOBS_FORCE_AUTO_UPDATE)
   ) {
-    // Windows uses our custom update, Mac uses electron-updater
-    if (process.platform === 'win32') {
+    // Windows uses our custom update, Mac uses electron-updater.
+    // There are no official Linux releases, so the Linux port does not auto-update.
+    if (process.platform === 'linux') {
+      console.log('Auto-update is not supported on Linux');
+      startApp();
+    } else if (process.platform === 'win32') {
       const updateInfo = {
         baseUrl: 'https://slobs-cdn.streamlabs.com',
         version: pjson.version,

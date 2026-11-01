@@ -268,6 +268,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
       const bounds = byOS({
         [OS.Windows]: () => remote.screen.dipToScreenRect(window, window.getBounds()),
         [OS.Mac]: () => window.getBounds(),
+        [OS.Linux]: () => window.getBounds(),
       });
       const currentDisplay = remote.screen.getDisplayMatching(bounds);
       this.UPDATE_SCALE_FACTOR(windowId, currentDisplay.scaleFactor);
@@ -460,7 +461,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     const newWindow = (this.windows[windowId] = new BrowserWindow({
       frame: false,
       titleBarStyle: 'hidden',
-      fullscreenable: byOS({ [OS.Windows]: true, [OS.Mac]: false }),
+      fullscreenable: byOS({ [OS.Windows]: true, [OS.Mac]: false, [OS.Linux]: true }),
       width: 400,
       height: 400,
       title: 'New Window',

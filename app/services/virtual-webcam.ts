@@ -108,6 +108,10 @@ export class VirtualWebcamService extends PersistentStatefulService<IVirtualWebc
       [OS.Windows]: () => {
         this.setInstallStatus();
       },
+      // Linux uses OBS' v4l2loopback output; availability is reported by the backend
+      [OS.Linux]: () => {
+        this.setInstallStatus();
+      },
       [OS.Mac]: () => {
         const result = obs.NodeObs.OBS_service_isVirtualCamPluginInstalled();
         if (result === obs.EVcamInstalledStatus.Installed) {
@@ -143,6 +147,11 @@ export class VirtualWebcamService extends PersistentStatefulService<IVirtualWebc
     byOS({
       [OS.Windows]: () => {
         errorMessage = $t('Unable to start virtual camera.');
+      },
+      [OS.Linux]: () => {
+        errorMessage = $t(
+          'Unable to start virtual camera.\n\nMake sure the v4l2loopback kernel module is installed and loaded, e.g. with: sudo modprobe v4l2loopback exclusive_caps=1 card_label="Streamlabs Virtual Camera"',
+        );
       },
       [OS.Mac]: () => {
         const darwinVersion = os.release().split('.')[0]; // Extract the major version number
@@ -249,6 +258,18 @@ export class VirtualWebcamService extends PersistentStatefulService<IVirtualWebc
     byOS({
       [OS.Windows]: () => {
         obs.NodeObs.OBS_service_installVirtualCamPlugin();
+
+        this.setInstallStatus();
+      },
+      [OS.Linux]: () => {
+        // The app cannot load kernel modules itself. Ask the user to set up v4l2loopback.
+        remote.dialog.showMessageBox({
+          type: 'info',
+          title: $t('Virtual Webcam'),
+          message: $t(
+            'On Linux the virtual camera uses the v4l2loopback kernel module. Install it with your package manager (e.g. v4l2loopback-dkms) and load it with: sudo modprobe v4l2loopback exclusive_caps=1 card_label="Streamlabs Virtual Camera"',
+          ),
+        });
 
         this.setInstallStatus();
       },

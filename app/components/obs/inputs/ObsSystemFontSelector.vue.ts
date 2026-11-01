@@ -3,24 +3,12 @@ import { IObsFont, IObsInput, ObsInput } from './ObsInput';
 import { ListInput } from 'components/shared/inputs/inputs';
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import HFormGroup from 'components/shared/inputs/HFormGroup.vue';
-import fontManager from 'font-manager';
+import { fontManager, IFontDescriptor } from 'util/native-fonts';
 import { EFontStyle } from 'obs-studio-node';
 
 /**
  * @tutorial https://github.com/devongovett/font-manager
  */
-interface IFontDescriptor {
-  path: string;
-  postscriptName: string;
-  family: string;
-  style: string;
-  weight: number;
-  width: number;
-  italic: boolean;
-  oblique: boolean;
-  monospace: boolean;
-}
-
 @Component({
   components: { ListInput, FontSizeSelector: ObsFontSizeSelector, HFormGroup },
 })

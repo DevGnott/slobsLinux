@@ -54,31 +54,34 @@ export class TextNode extends Node<ISchema, IContext> {
   updateInput(context: IContext) {
     const input = context.sceneItem.getObsInput();
 
+    // Translate GDI+ settings to Freetype settings (used on mac and linux)
+    const updateFreetype = () => {
+      const color1 = this.resetAlpha(this.data.settings.color);
+      const color2 = this.data.settings.gradient
+        ? this.resetAlpha(this.data.settings.gradient_color)
+        : this.resetAlpha(this.data.settings.color);
+
+      input.update({
+        color1,
+        color2,
+        custom_font: this.data.settings.custom_font,
+        font: this.data.settings.font,
+        text: this.data.settings.text,
+        outline: this.data.settings.outline,
+      });
+    };
+
     byOS({
       [OS.Windows]: () => {
         input.update(this.data.settings);
       },
-      [OS.Mac]: () => {
-        // Translate GDI+ settings to Freetype settings
-        const color1 = this.resetAlpha(this.data.settings.color);
-        const color2 = this.data.settings.gradient
-          ? this.resetAlpha(this.data.settings.gradient_color)
-          : this.resetAlpha(this.data.settings.color);
-
-        input.update({
-          color1,
-          color2,
-          custom_font: this.data.settings.custom_font,
-          font: this.data.settings.font,
-          text: this.data.settings.text,
-          outline: this.data.settings.outline,
-        });
-      },
+      [OS.Mac]: updateFreetype,
+      [OS.Linux]: updateFreetype,
     });
   }
 
   /**
-   * Forces 100% alpha on a color (used by mac)
+   * Forces 100% alpha on a color (used by mac and linux)
    * @param color An integer color
    */
   private resetAlpha(color: number) {

@@ -396,11 +396,14 @@ export class Source implements ISourceApi {
     let nativeVkey = code;
     let ignoreKeypress = false;
 
+    const normalizeEnter = () => {
+      // Enter key
+      if (code === 13) normalizedText = '\r';
+    };
+
     byOS({
-      [OS.Windows]: () => {
-        // Enter key
-        if (code === 13) normalizedText = '\r';
-      },
+      [OS.Windows]: normalizeEnter,
+      [OS.Linux]: normalizeEnter,
       [OS.Mac]: () => {
         const entry = this.getMacVirtualKeyCode(code);
         if (entry) {

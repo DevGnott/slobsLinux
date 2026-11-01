@@ -162,6 +162,7 @@ export class Display {
 
           return ret;
         },
+        [OS.Linux]: false,
       });
 
       if (
@@ -186,11 +187,16 @@ export class Display {
     const factor = byOS({
       [OS.Windows]: this.windowsService.state[this.slobsWindowId].scaleFactor,
       [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state[this.slobsWindowId].scaleFactor,
     });
 
-    // Windows: Top-left origin
+    // Windows/Linux: Top-left origin
     // Mac: Bottom-left origin
-    const yCoord = byOS({ [OS.Windows]: rect.top, [OS.Mac]: window.innerHeight - rect.bottom });
+    const yCoord = byOS({
+      [OS.Windows]: rect.top,
+      [OS.Mac]: window.innerHeight - rect.bottom,
+      [OS.Linux]: rect.top,
+    });
 
     return {
       x: rect.left * factor,
@@ -207,6 +213,8 @@ export class Display {
     byOS({
       [OS.Windows]: () => this.videoService.actions.moveOBSDisplay(this.name, x, y),
       [OS.Mac]: () => nwr.moveWindow(this.name, x, y),
+      // Linux works like Windows: OBS renders into a native child window (X11)
+      [OS.Linux]: () => this.videoService.actions.moveOBSDisplay(this.name, x, y),
     });
   }
 

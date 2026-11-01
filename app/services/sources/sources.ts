@@ -137,6 +137,32 @@ export const macSources: TSourceType[] = [
   'mediasoupconnector',
 ];
 
+/**
+ * These sources are valid on linux
+ */
+export const linuxSources: TSourceType[] = [
+  'image_source',
+  'color_source',
+  'browser_source',
+  'slideshow',
+  'ffmpeg_source',
+  'text_ft2_source',
+  'scene',
+  'v4l2_input',
+  'pipewire-camera-source',
+  'pulse_input_capture',
+  'pulse_output_capture',
+  'alsa_input_capture',
+  'xshm_input',
+  'xshm_input_v2',
+  'xcomposite_input',
+  'pipewire-screen-capture-source',
+  'pipewire-desktop-capture-source',
+  'pipewire-window-capture-source',
+  'vlc_source',
+  'decklink-input',
+];
+
 export const reactWidgets: TWidgetType[] = [
   'AlertBox',
   'BitGoal',
@@ -510,6 +536,19 @@ export class SourcesService extends StatefulService<ISourcesState> {
       });
     } else if (type === 'wasapi_output_capture') {
       checkForDefaultDevice();
+    } else if (type === 'v4l2_input') {
+      // v4l2 has no "default" device: select the first camera, as the list shows it as selected
+      const deviceProp = source.getPropertiesFormData().find(p => p.name === 'device_id') as
+        | IObsListInput<string>
+        | undefined;
+      const firstDevice = deviceProp?.options[0];
+      if (
+        deviceProp &&
+        firstDevice &&
+        !deviceProp.options.some(o => o.value === deviceProp.value)
+      ) {
+        source.updateSettings({ ...source.getSettings(), device_id: firstDevice.value });
+      }
     }
 
     this.sourceAdded.next(source.state);
@@ -694,6 +733,17 @@ export class SourcesService extends StatefulService<ISourcesState> {
       { description: 'Collab Cam', value: 'mediasoupconnector' },
       { description: 'Application Audio Capture (BETA)', value: 'wasapi_process_output_capture' },
       { description: 'Spout2 capture', value: 'spout_capture' },
+      { description: 'Video Capture Device (V4L2)', value: 'v4l2_input' },
+      { description: 'Video Capture Device (PipeWire)', value: 'pipewire-camera-source' },
+      { description: 'Audio Input Capture (PulseAudio)', value: 'pulse_input_capture' },
+      { description: 'Audio Output Capture (PulseAudio)', value: 'pulse_output_capture' },
+      { description: 'Audio Input Capture (ALSA)', value: 'alsa_input_capture' },
+      { description: 'Screen Capture (XSHM)', value: 'xshm_input' },
+      { description: 'Screen Capture (XSHM)', value: 'xshm_input_v2' },
+      { description: 'Window Capture (Xcomposite)', value: 'xcomposite_input' },
+      { description: 'Screen Capture (PipeWire)', value: 'pipewire-screen-capture-source' },
+      { description: 'Screen Capture (PipeWire)', value: 'pipewire-desktop-capture-source' },
+      { description: 'Window Capture (PipeWire)', value: 'pipewire-window-capture-source' },
     ];
 
     const availableAllowlistedTypes = allowlistedTypes.filter(type =>

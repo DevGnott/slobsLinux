@@ -44,6 +44,7 @@ export class StreamlabelsManager extends DefaultManager {
     return byOS({
       [OS.Windows]: ['read_from_file', 'text'],
       [OS.Mac]: ['from_file', 'text', 'text_file', 'log_mode', 'log_lines'],
+      [OS.Linux]: ['from_file', 'text', 'text_file', 'log_mode', 'log_lines'],
     });
   }
 

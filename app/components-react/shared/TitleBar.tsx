@@ -16,7 +16,7 @@ function TitleBar(props: { windowId: string; className?: string }) {
   const { CustomizationService, StreamingService, WindowsService } = Services;
 
   const isMaximizable = remote.getCurrentWindow().isMaximizable() !== false;
-  const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true });
+  const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true, [OS.Linux]: false });
   const theme = useRealmObject(CustomizationService.state).theme;
   const { title } = useVuex(
     () => ({

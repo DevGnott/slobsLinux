@@ -1,0 +1,29 @@
+diff --git a/libobs/obs.c b/libobs/obs.c
+index 16cee7b..e5cc93b 100644
+--- a/libobs/obs.c
++++ b/libobs/obs.c
+@@ -2184,8 +2184,10 @@ struct obs_video_info *obs_create_video_info()
+ 
+ #ifdef _WIN32
+ 	ovi->graphics_module = "libobs-d3d11.dll";
+-#else
++#elif defined(__APPLE__)
+ 	ovi->graphics_module = "libobs-opengl.dylib";
++#else
++	ovi->graphics_module = "libobs-opengl";
+ #endif
+ 
+ 	ovi->base_width = 1280;
+diff --git a/plugins/CMakeLists.txt b/plugins/CMakeLists.txt
+index 78ffdc4..f434900 100644
+--- a/plugins/CMakeLists.txt
++++ b/plugins/CMakeLists.txt
+@@ -62,7 +62,7 @@ add_obs_plugin(obs-filters)
+ add_obs_plugin(obs-libfdk)
+ add_obs_plugin(obs-nvenc PLATFORMS WINDOWS LINUX ARCHITECTURES x64 x86_64)
+ # Now it has a new name: https://github.com/DistroAV/DistroAV
+-add_obs_plugin(obs-ndi)
++add_obs_plugin(obs-ndi PLATFORMS WINDOWS MACOS)
+ add_obs_plugin(obs-outputs)
+ add_obs_plugin(
+     obs-qsv11

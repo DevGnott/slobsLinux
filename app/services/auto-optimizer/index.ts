@@ -529,6 +529,7 @@ export class AutoOptimizerService extends PersistentStatefulService<IAutoOptimiz
       const sourceType = byOS({
         [OS.Windows]: 'dshow_input' as const,
         [OS.Mac]: 'macos_avcapture' as const,
+        [OS.Linux]: 'v4l2_input' as const,
       });
       this.windowsService.showWindow({
         componentName: 'AddSource',

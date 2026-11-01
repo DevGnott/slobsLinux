@@ -5,12 +5,13 @@ import moment from 'moment';
 import cx from 'classnames';
 import { ModalLayout } from 'components-react/shared/ModalLayout';
 import { Services } from 'components-react/service-provider';
-import { confirmAsync, promptAsync, alertAsync } from 'components-react/modals';
+import { confirmAsync, promptAsync } from 'components-react/modals';
 import Scrollable from 'components-react/shared/Scrollable';
 import { $t } from 'services/i18n';
 import { $i } from 'services/utils';
 import { ISceneCollectionsManifestEntry } from 'services/scene-collections';
 import { getOS, OS } from 'util/operating-systems';
+import { importSceneCollectionCopy } from './import-scene-collection';
 import styles from './ManageSceneCollections.m.less';
 import { TextInput } from 'components-react/shared/inputs';
 import { useVuex } from 'components-react/hooks';
@@ -192,6 +193,7 @@ function CollectionNode(p: {
 }) {
   const { SceneCollectionsService } = Services;
   const [duplicating, setDuplicating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const modified = moment(p.collection.modified).fromNow();
   const isActive = p.collection.id === SceneCollectionsService.activeCollection?.id;
 
@@ -201,9 +203,25 @@ function CollectionNode(p: {
     if (p.collection.needsRename) rename();
   }
 
+  const isOtherOS = p.collection.operatingSystem !== getOS();
+  const canImport = isOtherOS && getOS() === OS.Linux;
+
   async function makeActive() {
-    if (p.collection.operatingSystem !== getOS()) return;
+    if (canImport) {
+      await importToThisOS();
+      return;
+    }
+    if (isOtherOS) return;
     SceneCollectionsService.actions.load(p.collection.id);
+  }
+
+  async function importToThisOS() {
+    setImporting(true);
+    try {
+      await importSceneCollectionCopy(p.collection.id);
+    } finally {
+      setImporting(false);
+    }
   }
 
   function duplicate() {
@@ -240,15 +258,22 @@ function CollectionNode(p: {
     >
       <span>
         <i
-          className={cx(
-            'fab',
-            p.collection.operatingSystem === OS.Windows ? 'fa-windows' : 'fa-apple',
-          )}
+          className={cx('fab', {
+            'fa-windows': p.collection.operatingSystem === OS.Windows,
+            'fa-apple': p.collection.operatingSystem === OS.Mac,
+            'fa-linux': p.collection.operatingSystem === OS.Linux,
+          })}
         />
         {p.collection.name}
       </span>
       {p.recentlyUpdated && <span className={styles.whisper}>Updated {modified}</span>}
       <div className={styles.editIcons}>
+        {canImport && !importing && (
+          <Tooltip title={$t('Import a copy for Linux')}>
+            <i className="icon-cloud-backup" onClick={importToThisOS} />
+          </Tooltip>
+        )}
+        {importing && <i className="fa fa-spinner fa-pulse" />}
         <Tooltip title={$t('Rename')}>
           <i className="icon-edit" onClick={rename} />
         </Tooltip>

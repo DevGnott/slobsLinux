@@ -6,6 +6,7 @@
 
 import { Service } from './core/service';
 import * as remote from '@electron/remote';
+import { getOS, OS } from 'util/operating-systems';
 
 export type TKeyEventType = 'registerKeydown' | 'registerKeyup';
 
@@ -41,7 +42,21 @@ export class KeyListenerService extends Service {
   hookStarted = false;
 
   init() {
-    this.libuiohook = remote.require('node-libuiohook');
+    try {
+      this.libuiohook = remote.require('node-libuiohook');
+    } catch (e: unknown) {
+      // node-libuiohook has no Linux build yet. All hotkeys go through it, so
+      // hotkeys are disabled until it is built for Linux.
+      if (getOS() !== OS.Linux) throw e;
+      console.warn('node-libuiohook is not available, hotkeys are disabled', e);
+      this.libuiohook = {
+        registerCallback: () => false,
+        unregisterCallback: () => {},
+        unregisterAllCallbacks: () => {},
+        startHook: () => {},
+        stopHook: () => {},
+      };
+    }
   }
 
   unregisterAll(namespace = 'global') {

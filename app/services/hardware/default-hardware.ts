@@ -38,7 +38,11 @@ export class DefaultHardwareService extends PersistentStatefulService<IDefaultHa
     this.audioDevices.forEach(device => {
       this.sourcesService.createSource(
         device.id,
-        byOS({ [OS.Windows]: 'wasapi_input_capture', [OS.Mac]: 'coreaudio_input_capture' }),
+        byOS({
+          [OS.Windows]: 'wasapi_input_capture',
+          [OS.Mac]: 'coreaudio_input_capture',
+          [OS.Linux]: 'pulse_input_capture',
+        }),
         { device_id: device.id },
         {
           isTemporary: true,
@@ -55,8 +59,16 @@ export class DefaultHardwareService extends PersistentStatefulService<IDefaultHa
       if (!device.id) return;
       this.sourcesService.createSource(
         device.id,
-        byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' }),
-        byOS({ [OS.Windows]: { video_device_id: device.id }, [OS.Mac]: { device: device.id } }),
+        byOS({
+          [OS.Windows]: 'dshow_input',
+          [OS.Mac]: 'macos_avcapture',
+          [OS.Linux]: 'v4l2_input',
+        }),
+        byOS({
+          [OS.Windows]: { video_device_id: device.id },
+          [OS.Mac]: { device: device.id },
+          [OS.Linux]: { device_id: device.id },
+        }),
         {
           isTemporary: true,
           sourceId: device.id,
@@ -68,12 +80,21 @@ export class DefaultHardwareService extends PersistentStatefulService<IDefaultHa
   }
 
   get existingVideoDeviceSources() {
-    const deviceProperty = byOS({ [OS.Windows]: 'video_device_id', [OS.Mac]: 'device' });
+    const deviceProperty = byOS({
+      [OS.Windows]: 'video_device_id',
+      [OS.Mac]: 'device',
+      [OS.Linux]: 'device_id',
+    });
 
     return this.sourcesService.views.sources
       .filter(
         source =>
-          source.type === byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' }) &&
+          source.type ===
+            byOS({
+              [OS.Windows]: 'dshow_input',
+              [OS.Mac]: 'macos_avcapture',
+              [OS.Linux]: 'v4l2_input',
+            }) &&
           this.videoDevices.find(device => device.id === source.getSettings()[deviceProperty]),
       )
       .map(source => ({
@@ -83,19 +104,31 @@ export class DefaultHardwareService extends PersistentStatefulService<IDefaultHa
   }
 
   findVideoSource(deviceId: string) {
-    const deviceProperty = byOS({ [OS.Windows]: 'video_device_id', [OS.Mac]: 'device' });
+    const deviceProperty = byOS({
+      [OS.Windows]: 'video_device_id',
+      [OS.Mac]: 'device',
+      [OS.Linux]: 'device_id',
+    });
 
     let found = this.sourcesService.views.sources.find(
       source =>
-        source.type === byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' }) &&
-        source.getSettings()[deviceProperty] === deviceId,
+        source.type ===
+          byOS({
+            [OS.Windows]: 'dshow_input',
+            [OS.Mac]: 'macos_avcapture',
+            [OS.Linux]: 'v4l2_input',
+          }) && source.getSettings()[deviceProperty] === deviceId,
     );
 
     if (!found) {
       found = this.sourcesService.views.temporarySources.find(
         source =>
-          source.type === byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' }) &&
-          source.getSettings()[deviceProperty] === deviceId,
+          source.type ===
+            byOS({
+              [OS.Windows]: 'dshow_input',
+              [OS.Mac]: 'macos_avcapture',
+              [OS.Linux]: 'v4l2_input',
+            }) && source.getSettings()[deviceProperty] === deviceId,
       );
     }
 
@@ -109,7 +142,11 @@ export class DefaultHardwareService extends PersistentStatefulService<IDefaultHa
     });
 
     this.videoDevices.forEach(device => {
-      const deviceProperty = byOS({ [OS.Windows]: 'video_device_id', [OS.Mac]: 'device' });
+      const deviceProperty = byOS({
+        [OS.Windows]: 'video_device_id',
+        [OS.Mac]: 'device',
+        [OS.Linux]: 'device_id',
+      });
       if (
         this.sourcesService.views.temporarySources.find(
           s => s.getSettings()[deviceProperty] === device.id,

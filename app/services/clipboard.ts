@@ -499,6 +499,19 @@ export class ClipboardService extends StatefulService<IClipboardState> {
       },
       // We don't support this on mac for now
       [OS.Mac]: [],
+      [OS.Linux]: () => {
+        // File managers on Linux put a text/uri-list on the clipboard
+        try {
+          return clipboard
+            .read('text/uri-list')
+            .split(/\r?\n/)
+            .filter(uri => uri.startsWith('file://'))
+            .map(uri => decodeURIComponent(new URL(uri).pathname));
+        } catch (e: unknown) {
+          console.error('Error reading clipboard files', e);
+          return [];
+        }
+      },
     });
   }
 

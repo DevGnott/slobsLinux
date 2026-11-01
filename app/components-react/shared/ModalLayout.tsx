@@ -21,7 +21,7 @@ type TProps = {
   id?: string;
 } & Pick<ModalProps, 'footer' | 'onOk' | 'okText' | 'bodyStyle' | 'confirmLoading' | 'onCancel'>;
 
-const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true });
+const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true, [OS.Linux]: false });
 
 const fixedStyles: CSSProperties = {
   height: '200px',
