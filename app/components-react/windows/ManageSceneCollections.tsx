@@ -192,6 +192,7 @@ function CollectionNode(p: {
 }) {
   const { SceneCollectionsService } = Services;
   const [duplicating, setDuplicating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const modified = moment(p.collection.modified).fromNow();
   const isActive = p.collection.id === SceneCollectionsService.activeCollection?.id;
 
@@ -201,9 +202,49 @@ function CollectionNode(p: {
     if (p.collection.needsRename) rename();
   }
 
+  const isOtherOS = p.collection.operatingSystem !== getOS();
+  const canImport = isOtherOS && getOS() === OS.Linux;
+
   async function makeActive() {
-    if (p.collection.operatingSystem !== getOS()) return;
+    if (isOtherOS) return;
     SceneCollectionsService.actions.load(p.collection.id);
+  }
+
+  async function importToThisOS() {
+    setImporting(true);
+
+    try {
+      const result = await SceneCollectionsService.actions.return.importFromOtherOS(
+        p.collection.id,
+      );
+      if (!result) return;
+
+      const { replaced, removed, removedFilters } = result.report;
+      const lines = [
+        $t('Created "%{name}". The original collection was not changed.', { name: result.name }),
+        replaced.length
+          ? $t('%{count} sources were replaced by their Linux equivalent. Pick the devices again.', {
+              count: replaced.length,
+            })
+          : '',
+        removed.length
+          ? $t('%{count} sources are not available on Linux and were removed: %{names}', {
+              count: removed.length,
+              names: removed.map(s => s.name).join(', '),
+            })
+          : '',
+        removedFilters.length
+          ? $t('%{count} filters were removed.', { count: removedFilters.length })
+          : '',
+      ].filter(Boolean);
+
+      await alertAsync(lines.join('\n\n'));
+    } catch (e: unknown) {
+      console.error('Scene collection import failed', e);
+      await alertAsync($t('The scene collection could not be imported.'));
+    } finally {
+      setImporting(false);
+    }
   }
 
   function duplicate() {
@@ -240,15 +281,22 @@ function CollectionNode(p: {
     >
       <span>
         <i
-          className={cx(
-            'fab',
-            p.collection.operatingSystem === OS.Windows ? 'fa-windows' : 'fa-apple',
-          )}
+          className={cx('fab', {
+            'fa-windows': p.collection.operatingSystem === OS.Windows,
+            'fa-apple': p.collection.operatingSystem === OS.Mac,
+            'fa-linux': p.collection.operatingSystem === OS.Linux,
+          })}
         />
         {p.collection.name}
       </span>
       {p.recentlyUpdated && <span className={styles.whisper}>Updated {modified}</span>}
       <div className={styles.editIcons}>
+        {canImport && !importing && (
+          <Tooltip title={$t('Import a copy for Linux')}>
+            <i className="icon-cloud-backup" onClick={importToThisOS} />
+          </Tooltip>
+        )}
+        {importing && <i className="fa fa-spinner fa-pulse" />}
         <Tooltip title={$t('Rename')}>
           <i className="icon-edit" onClick={rename} />
         </Tooltip>
