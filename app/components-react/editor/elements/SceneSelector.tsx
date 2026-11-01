@@ -4,7 +4,8 @@ import { Dropdown, Tooltip, Tree } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import * as remote from '@electron/remote';
 import { Menu } from 'util/menus/Menu';
-import { getOS } from 'util/operating-systems';
+import { getOS, OS } from 'util/operating-systems';
+import { importSceneCollectionCopy } from 'components-react/windows/import-scene-collection';
 import { Services } from 'components-react/service-provider';
 import { useVuex } from 'components-react/hooks';
 import HelpTip from 'components-react/shared/HelpTip';
@@ -122,8 +123,16 @@ function SceneSelector() {
       });
   }
 
-  function loadCollection(id: string) {
-    if (SceneCollectionsService.getCollection(id)?.operatingSystem !== getOS()) return;
+  async function loadCollection(id: string) {
+    if (SceneCollectionsService.getCollection(id)?.operatingSystem !== getOS()) {
+      // Collections of another OS cannot be loaded, but they can be imported as a copy on Linux
+      if (getOS() !== OS.Linux) return;
+
+      setShowDropdown(false);
+      const newId = await importSceneCollectionCopy(id, { confirm: true });
+      if (newId) SceneCollectionsService.actions.load(newId);
+      return;
+    }
 
     SceneCollectionsService.actions.load(id);
     setShowDropdown(false);
@@ -148,10 +157,11 @@ function SceneSelector() {
             data-name={collection.name}
           >
             <i
-              className={cx(
-                'fab',
-                collection.operatingSystem === 'win32' ? 'fa-windows' : 'fa-apple',
-              )}
+              className={cx('fab', {
+                'fa-windows': collection.operatingSystem === OS.Windows,
+                'fa-apple': collection.operatingSystem === OS.Mac,
+                'fa-linux': collection.operatingSystem === OS.Linux,
+              })}
             />
             {collection.name}
           </div>

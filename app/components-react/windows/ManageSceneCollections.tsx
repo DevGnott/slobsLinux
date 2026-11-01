@@ -5,12 +5,13 @@ import moment from 'moment';
 import cx from 'classnames';
 import { ModalLayout } from 'components-react/shared/ModalLayout';
 import { Services } from 'components-react/service-provider';
-import { confirmAsync, promptAsync, alertAsync } from 'components-react/modals';
+import { confirmAsync, promptAsync } from 'components-react/modals';
 import Scrollable from 'components-react/shared/Scrollable';
 import { $t } from 'services/i18n';
 import { $i } from 'services/utils';
 import { ISceneCollectionsManifestEntry } from 'services/scene-collections';
 import { getOS, OS } from 'util/operating-systems';
+import { importSceneCollectionCopy } from './import-scene-collection';
 import styles from './ManageSceneCollections.m.less';
 import { TextInput } from 'components-react/shared/inputs';
 import { useVuex } from 'components-react/hooks';
@@ -206,42 +207,18 @@ function CollectionNode(p: {
   const canImport = isOtherOS && getOS() === OS.Linux;
 
   async function makeActive() {
+    if (canImport) {
+      await importToThisOS();
+      return;
+    }
     if (isOtherOS) return;
     SceneCollectionsService.actions.load(p.collection.id);
   }
 
   async function importToThisOS() {
     setImporting(true);
-
     try {
-      const result = await SceneCollectionsService.actions.return.importFromOtherOS(
-        p.collection.id,
-      );
-      if (!result) return;
-
-      const { replaced, removed, removedFilters } = result.report;
-      const lines = [
-        $t('Created "%{name}". The original collection was not changed.', { name: result.name }),
-        replaced.length
-          ? $t('%{count} sources were replaced by their Linux equivalent. Pick the devices again.', {
-              count: replaced.length,
-            })
-          : '',
-        removed.length
-          ? $t('%{count} sources are not available on Linux and were removed: %{names}', {
-              count: removed.length,
-              names: removed.map(s => s.name).join(', '),
-            })
-          : '',
-        removedFilters.length
-          ? $t('%{count} filters were removed.', { count: removedFilters.length })
-          : '',
-      ].filter(Boolean);
-
-      await alertAsync(lines.join('\n\n'));
-    } catch (e: unknown) {
-      console.error('Scene collection import failed', e);
-      await alertAsync($t('The scene collection could not be imported.'));
+      await importSceneCollectionCopy(p.collection.id);
     } finally {
       setImporting(false);
     }
