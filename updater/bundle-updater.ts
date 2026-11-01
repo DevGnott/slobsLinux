@@ -299,6 +299,12 @@ module.exports = async (basePath: string) => {
     useLocalBundles = true;
   }
 
+  // The CDN only hosts official Windows/macOS bundles. Downloading them on Linux
+  // would replace the Linux-aware renderer of this port, so always use local bundles.
+  if (process.platform === 'linux') {
+    useLocalBundles = true;
+  }
+
   const forceLocalBundles = path.join(basePath, '../../force-local-bundles');
   if (fs.existsSync(forceLocalBundles)) {
     useLocalBundles = true;

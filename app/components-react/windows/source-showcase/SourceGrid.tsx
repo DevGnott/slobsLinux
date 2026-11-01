@@ -56,7 +56,12 @@ export default function SourceGrid(p: { activeTab: string; searchTerm: string })
   /**
    * These widgets have been deprecated and are being hidden.
    */
-  const DEPRECATED_WIDGETS: WidgetType[] = [WidgetType.SubscriberGoal, WidgetType.GameWidget, WidgetType.SupporterGoal, WidgetType.StarsGoal];
+  const DEPRECATED_WIDGETS: WidgetType[] = [
+    WidgetType.SubscriberGoal,
+    WidgetType.GameWidget,
+    WidgetType.SupporterGoal,
+    WidgetType.StarsGoal,
+  ];
   /**
    * English and languages with logographic writing systems
    * generally have shorter strings so we prevent those cards from wrapping.
@@ -89,6 +94,7 @@ export default function SourceGrid(p: { activeTab: string; searchTerm: string })
           return byOS({
             [OS.Windows]: displayData.supportedOS.includes(OS.Windows),
             [OS.Mac]: displayData.supportedOS.includes(OS.Mac),
+            [OS.Linux]: displayData.supportedOS.includes(OS.Linux),
           });
         }
 
@@ -216,8 +222,11 @@ export default function SourceGrid(p: { activeTab: string; searchTerm: string })
       UserService.views.isLoggedIn;
 
     const result = SourcesService.getAvailableSourcesTypesList().filter(type => {
-      // Freetype on windows is hidden
-      if (type.value === 'text_ft2_source' && byOS({ [OS.Windows]: true, [OS.Mac]: false })) {
+      // Freetype on windows is hidden (it is the only text source on mac and linux)
+      if (
+        type.value === 'text_ft2_source' &&
+        byOS({ [OS.Windows]: true, [OS.Mac]: false, [OS.Linux]: false })
+      ) {
         return;
       }
 

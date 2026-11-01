@@ -129,7 +129,11 @@ export class RecordingModeService extends PersistentStatefulService<IRecordingMo
   private addRecordingCapture() {
     this.scenesService.views.activeScene.createAndAddSource(
       $t('Screen Capture (Double-click to select)'),
-      byOS({ [OS.Windows]: 'screen_capture', [OS.Mac]: 'window_capture' }),
+      byOS({
+        [OS.Windows]: 'screen_capture',
+        [OS.Mac]: 'window_capture',
+        [OS.Linux]: 'xshm_input',
+      }),
     );
   }
 
@@ -150,7 +154,7 @@ export class RecordingModeService extends PersistentStatefulService<IRecordingMo
 
     const item = this.scenesService.views.activeScene.createAndAddSource(
       'Webcam',
-      byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' }),
+      byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture', [OS.Linux]: 'v4l2_input' }),
     );
 
     let sub = this.sourcesService.sourceUpdated.subscribe(s => {

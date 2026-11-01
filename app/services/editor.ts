@@ -211,7 +211,13 @@ export class EditorService extends StatefulService<IEditorServiceState> {
           }
 
           // Ctrl/Cmd adds or removes from a multiselection
-          if (byOS({ [OS.Windows]: event.ctrlKey, [OS.Mac]: event.metaKey })) {
+          if (
+            byOS({
+              [OS.Windows]: event.ctrlKey,
+              [OS.Mac]: event.metaKey,
+              [OS.Linux]: event.ctrlKey,
+            })
+          ) {
             if (overNode.isSelected()) {
               overNode.deselect();
             } else {
@@ -276,7 +282,11 @@ export class EditorService extends StatefulService<IEditorServiceState> {
 
   handleMouseMove(event: IMouseEvent) {
     // We don't need to adjust mac coordinates for scale factor
-    const factor = byOS({ [OS.Windows]: this.windowsService.state.main.scaleFactor, [OS.Mac]: 1 });
+    const factor = byOS({
+      [OS.Windows]: this.windowsService.state.main.scaleFactor,
+      [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state.main.scaleFactor,
+    });
     const mousePosX = event.offsetX * factor - this.renderedOffsetXs[event.display];
     const mousePosY = event.offsetY * factor - this.renderedOffsetYs[event.display];
 
@@ -525,7 +535,11 @@ export class EditorService extends StatefulService<IEditorServiceState> {
     borderWidth: number = 0,
   ): boolean {
     // We don't need to adjust mac coordinates for scale factor
-    const factor = byOS({ [OS.Windows]: this.windowsService.state.main.scaleFactor, [OS.Mac]: 1 });
+    const factor = byOS({
+      [OS.Windows]: this.windowsService.state.main.scaleFactor,
+      [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state.main.scaleFactor,
+    });
 
     const mouse = this.convertVectorToBaseSpace(
       event.offsetX * factor,
@@ -710,7 +724,11 @@ export class EditorService extends StatefulService<IEditorServiceState> {
   generateResizeRegionsForItem(item: SceneItem): IResizeRegion[] {
     const renderedRegionRadius = 5;
     // We don't need to adjust mac coordinates for scale factor
-    const factor = byOS({ [OS.Windows]: this.windowsService.state.main.scaleFactor, [OS.Mac]: 1 });
+    const factor = byOS({
+      [OS.Windows]: this.windowsService.state.main.scaleFactor,
+      [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state.main.scaleFactor,
+    });
 
     const radiusLowerBound = Math.min(
       this.baseResolutions[item.display ?? 'horizontal'].baseWidth,

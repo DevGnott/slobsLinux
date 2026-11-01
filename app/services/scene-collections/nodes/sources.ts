@@ -6,6 +6,7 @@ import {
   TPropertiesManager,
   macSources,
   windowsSources,
+  linuxSources,
   EDeinterlaceMode,
   EDeinterlaceFieldOrder,
 } from 'services/sources';
@@ -201,7 +202,11 @@ export class SourcesNode extends Node<ISchema, ISceneCollectionLoadContext> {
    * Remove unsupported sources.
    */
   removeUnsupported(): boolean {
-    const supportedSources = byOS({ [OS.Windows]: windowsSources, [OS.Mac]: macSources });
+    const supportedSources = byOS({
+      [OS.Windows]: windowsSources,
+      [OS.Mac]: macSources,
+      [OS.Linux]: linuxSources,
+    });
     const itemsCopy = this.data.items.slice();
     this.data.items = [];
     let removed = false;
@@ -228,6 +233,7 @@ export class SourcesNode extends Node<ISchema, ISceneCollectionLoadContext> {
       return byOS({
         [OS.Windows]: () => windowsSources.includes(source.type),
         [OS.Mac]: () => macSources.includes(source.type),
+        [OS.Linux]: () => linuxSources.includes(source.type),
       });
     });
 

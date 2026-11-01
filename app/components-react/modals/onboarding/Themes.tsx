@@ -83,6 +83,7 @@ export function Themes(p: IOnboardingStepProps) {
     return byOS<Record<string, string>>({
       [OS.Windows]: THEME_MAP.ULTRA,
       [OS.Mac]: THEME_MAP.ULTRA_MAC,
+      [OS.Linux]: THEME_MAP.ULTRA,
     });
   }, [isPrime]);
   useEffect(() => {

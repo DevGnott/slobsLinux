@@ -223,6 +223,7 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
     const webcamSourceType = byOS<TSourceType>({
       [OS.Windows]: 'dshow_input',
       [OS.Mac]: 'macos_avcapture',
+      [OS.Linux]: 'v4l2_input',
     });
 
     if (obj.content instanceof WebcamNode) {
@@ -288,7 +289,11 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
     } else if (obj.content instanceof TextNode) {
       sceneItem = context.scene.createAndAddSource(
         obj.name,
-        byOS({ [OS.Windows]: 'text_gdiplus', [OS.Mac]: 'text_ft2_source' }),
+        byOS({
+          [OS.Windows]: 'text_gdiplus',
+          [OS.Mac]: 'text_ft2_source',
+          [OS.Linux]: 'text_ft2_source',
+        }),
         {},
         { id, select: false, display },
       );
@@ -309,7 +314,11 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
     } else if (obj.content instanceof StreamlabelNode) {
       sceneItem = context.scene.createAndAddSource(
         obj.name,
-        byOS({ [OS.Windows]: 'text_gdiplus', [OS.Mac]: 'text_ft2_source' }),
+        byOS({
+          [OS.Windows]: 'text_gdiplus',
+          [OS.Mac]: 'text_ft2_source',
+          [OS.Linux]: 'text_ft2_source',
+        }),
         {},
         { id, select: false, display },
       );

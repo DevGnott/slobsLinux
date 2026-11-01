@@ -144,7 +144,19 @@ export type TSourceType =
   | 'mediasoupconnector'
   | 'wasapi_process_output_capture'
   | 'smart_browser_source'
-  | 'spout_capture';
+  | 'spout_capture'
+  // Linux (OBS linux-* plugins)
+  | 'v4l2_input'
+  | 'pipewire-camera-source'
+  | 'pulse_input_capture'
+  | 'pulse_output_capture'
+  | 'alsa_input_capture'
+  | 'xshm_input'
+  | 'xshm_input_v2'
+  | 'xcomposite_input'
+  | 'pipewire-screen-capture-source'
+  | 'pipewire-desktop-capture-source'
+  | 'pipewire-window-capture-source';
 
 // Register new properties managers here
 export type TPropertiesManager =

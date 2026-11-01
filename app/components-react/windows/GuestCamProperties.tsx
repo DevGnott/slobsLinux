@@ -93,7 +93,11 @@ class GuestCamController {
   }
 
   get videoProducerSourceOptions() {
-    const videoSourceType = byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' });
+    const videoSourceType = byOS({
+      [OS.Windows]: 'dshow_input',
+      [OS.Mac]: 'macos_avcapture',
+      [OS.Linux]: 'v4l2_input',
+    });
 
     return this.SourcesService.views.getSourcesByType(videoSourceType as TSourceType).map(s => ({
       label: s.name,
@@ -105,6 +109,7 @@ class GuestCamController {
     const audioSourceType = byOS({
       [OS.Windows]: 'wasapi_input_capture',
       [OS.Mac]: 'coreaudio_input_capture',
+      [OS.Linux]: 'pulse_input_capture',
     });
 
     return this.SourcesService.views.getSourcesByType(audioSourceType as TSourceType).map(s => ({

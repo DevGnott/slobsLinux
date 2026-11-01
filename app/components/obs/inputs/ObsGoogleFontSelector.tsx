@@ -1,4 +1,4 @@
-import * as fi from 'node-fontinfo';
+import { fontInfo as fi } from 'util/native-fonts';
 import { EFontStyle } from 'obs-studio-node';
 import { Component, Prop } from 'vue-property-decorator';
 import { FontLibraryService } from '../../../services/font-library';

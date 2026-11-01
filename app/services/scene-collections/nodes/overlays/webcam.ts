@@ -70,6 +70,18 @@ export class WebcamNode extends Node<ISchema, IContext> {
             context.sceneItem,
           );
         },
+        [OS.Linux]: () => {
+          // v4l2 lists resolutions as "WxH" names with packed integer values
+          const selectedResolution = (input.properties.get(
+            'resolution',
+          ) as IListProperty).details.items.find(i => i.value === input.settings['resolution']);
+
+          return this.resStringToResolution(
+            selectedResolution?.name as string,
+            selectedResolution?.value as string,
+            context.sceneItem,
+          );
+        },
       });
     } else {
       resolution = this.performInitialSetup(context.sceneItem);
@@ -120,6 +132,7 @@ export class WebcamNode extends Node<ISchema, IContext> {
     const deviceProperty = byOS({
       [OS.Windows]: () => input.properties.get('video_device_id') as IListProperty,
       [OS.Mac]: () => input.properties.get('device') as IListProperty,
+      [OS.Linux]: () => input.properties.get('device_id') as IListProperty,
     });
 
     // Stop loading if there aren't any devices
@@ -156,6 +169,19 @@ export class WebcamNode extends Node<ISchema, IContext> {
             item,
           );
         });
+      },
+      [OS.Linux]: () => {
+        input.update({ device_id: device });
+
+        return (input.properties.get('resolution') as IListProperty).details.items.map(
+          resString => {
+            return this.resStringToResolution(
+              resString.name as string,
+              resString.value as string,
+              item,
+            );
+          },
+        );
       },
     });
 
@@ -207,6 +233,8 @@ export class WebcamNode extends Node<ISchema, IContext> {
     byOS({
       [OS.Windows]: () => input.update({ resolution }),
       [OS.Mac]: () => input.update({ preset: resolution }),
+      // v4l2 stores the resolution as a packed integer (width << 16 | height)
+      [OS.Linux]: () => input.update({ resolution: Number(resolution) }),
     });
   }
 

@@ -34,7 +34,11 @@ export default class BrowserSourceInteraction extends TsxComponent<{}> {
   }
 
   eventLocationInSourceSpace(e: MouseEvent): IVec2 {
-    const factor = byOS({ [OS.Windows]: this.windowsService.state.child.scaleFactor, [OS.Mac]: 1 });
+    const factor = byOS({
+      [OS.Windows]: this.windowsService.state.child.scaleFactor,
+      [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state.child.scaleFactor,
+    });
 
     return {
       x:

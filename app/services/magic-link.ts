@@ -60,7 +60,7 @@ export class MagicLinkService extends Service {
   ) {
     // TODO: this is only here to accommodate ultra checkout A/B test requiring OS
     // remove this and the parameter from {getDashboardMagicLink} after.
-    const os = byOS({ [OS.Windows]: 'windows', [OS.Mac]: 'mac' });
+    const os = byOS({ [OS.Windows]: 'windows', [OS.Mac]: 'mac', [OS.Linux]: 'windows' });
 
     this.usageStatisticsService.recordUltra(refl, config?.event);
 

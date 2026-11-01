@@ -117,6 +117,7 @@ export class DragHandler {
     this.scaleFactor = byOS({
       [OS.Windows]: this.windowsService.state.main.scaleFactor,
       [OS.Mac]: 1,
+      [OS.Linux]: this.windowsService.state.main.scaleFactor,
     });
 
     this.snapDistance =

@@ -438,6 +438,7 @@ export class GuestCamService extends StatefulService<IGuestCamServiceState> {
         const sourceType = byOS({
           [OS.Windows]: 'wasapi_input_capture',
           [OS.Mac]: 'coreaudio_input_capture',
+          [OS.Linux]: 'pulse_input_capture',
         });
 
         audioSource = this.sourcesService.views.sources.find(s => s.type === sourceType);
@@ -450,7 +451,11 @@ export class GuestCamService extends StatefulService<IGuestCamServiceState> {
       !this.state.videoSourceId ||
       !this.sourcesService.views.getSource(this.state.videoSourceId)
     ) {
-      const sourceType = byOS({ [OS.Windows]: 'dshow_input', [OS.Mac]: 'macos_avcapture' });
+      const sourceType = byOS({
+        [OS.Windows]: 'dshow_input',
+        [OS.Mac]: 'macos_avcapture',
+        [OS.Linux]: 'v4l2_input',
+      });
       const videoSource = this.sourcesService.views.sources.find(s => s.type === sourceType);
 
       if (videoSource) this.SET_VIDEO_SOURCE(videoSource.sourceId);

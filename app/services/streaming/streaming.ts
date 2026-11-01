@@ -3804,6 +3804,7 @@ export class StreamingService
       const parsedName = byOS({
         [OS.Mac]: fileName,
         [OS.Windows]: fileName.replace(/\//, '\\'),
+        [OS.Linux]: fileName,
       });
 
       // In dual output mode, each confirmation should be labelled for each display

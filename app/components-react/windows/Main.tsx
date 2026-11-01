@@ -24,7 +24,7 @@ import { useRealmObject } from 'components-react/hooks/realm';
 import Onboarding from 'components-react/modals/onboarding/Onboarding';
 import { byOS, OS } from 'util/operating-systems';
 
-const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true });
+const isMac = byOS({ [OS.Windows]: false, [OS.Mac]: true, [OS.Linux]: false });
 
 // TODO: this is technically deprecated as we have moved customizationService to Realm
 // but some users may still have this value

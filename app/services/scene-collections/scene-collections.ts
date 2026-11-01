@@ -1167,7 +1167,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     if (getOS() === OS.Windows) {
       this.sourcesService.createSource(
         'Desktop Audio',
-        byOS({ [OS.Windows]: 'wasapi_output_capture', [OS.Mac]: 'coreaudio_output_capture' }),
+        byOS({
+          [OS.Windows]: 'wasapi_output_capture',
+          [OS.Mac]: 'coreaudio_output_capture',
+          [OS.Linux]: 'pulse_output_capture',
+        }),
         { device_id: desktopAudioDevice },
         { channel: E_AUDIO_CHANNELS.OUTPUT_1 },
       );
@@ -1178,7 +1182,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       : undefined;
     this.sourcesService.createSource(
       'Mic/Aux',
-      byOS({ [OS.Windows]: 'wasapi_input_capture', [OS.Mac]: 'coreaudio_input_capture' }),
+      byOS({
+        [OS.Windows]: 'wasapi_input_capture',
+        [OS.Mac]: 'coreaudio_input_capture',
+        [OS.Linux]: 'pulse_input_capture',
+      }),
       { device_id: micDevice || defaultId },
       { channel: E_AUDIO_CHANNELS.INPUT_1 },
     );
@@ -1532,6 +1540,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     const type = byOS({
       [OS.Windows]: 'dshow_input',
       [OS.Mac]: 'macos_avcapture',
+      [OS.Linux]: 'v4l2_input',
     }) as TSourceType;
 
     const defaultSource = this.defaultHardwareService.state.defaultVideoDevice;
