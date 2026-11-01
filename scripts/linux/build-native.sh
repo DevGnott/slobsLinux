@@ -42,7 +42,7 @@ echo "==> obs-studio-node ($OSN_BRANCH)"
 if [ ! -d "$WORK_DIR/obs-studio-node" ]; then
   git clone --branch "$OSN_BRANCH" --recurse-submodules "$OSN_REPO" "$WORK_DIR/obs-studio-node"
 fi
-(cd "$WORK_DIR/obs-studio-node" && yarn install --ignore-scripts)
+(cd "$WORK_DIR/obs-studio-node" && yarn install --mode=skip-build)
 
 # Install into a fresh directory: cmake --install skips files whose size and
 # timestamp did not change, which hides RUNPATH-only changes of libobs.

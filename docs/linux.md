@@ -30,6 +30,8 @@ sudo apt install build-essential cmake ninja-build pkg-config git curl \
 ```
 
 You also need Node.js and Yarn (via `corepack enable`) as described in the main README.
+Use **Node 22** (for example through nvm): Yarn 3.1.1 crashes on Node 24 with
+`util.isDate is not a function`.
 
 ## Build
 
